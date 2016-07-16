@@ -41,9 +41,7 @@ static PyObject *AddNode(PyObject *self, PyObject *args, PyObject *keywds) {
 
 	node_manager.AddNode(id, index, children_ids, function);
 
-	auto *nodes = node_manager.nodes();
-	if (nodes->find(id) == nodes->end()) Py_RETURN_FALSE;
-	else Py_RETURN_TRUE;
+	Py_RETURN_NONE;
 }
 
 static PyMethodDef behavior_tree_methods[] = {

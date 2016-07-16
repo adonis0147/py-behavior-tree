@@ -10,15 +10,17 @@ typedef struct {
 	PyObject_HEAD
 	int node_id;
 	Node *node;
-	bool can_tick;
 	int tick_result;
+	bool can_tick;
 } Root;
 
 static void RootDealloc(Root *self) {
+	NodeManager::Instance().DeleteRootNode(self->node_id, &self->node);
+
 	self->node_id = 0;
 	self->node = NULL;
-	self->can_tick = false;
 	self->tick_result = 0;
+	self->can_tick = false;
 	self->ob_type->tp_free((PyObject*)self);
 }
 
@@ -27,8 +29,8 @@ static PyObject *RootNew(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 	if (self != NULL) {
 		self->node_id = 0;
 		self->node = NULL;
-		self->can_tick = false;
 		self->tick_result = 0;
+		self->can_tick = false;
 	}
 	return (PyObject *)self;
 }
@@ -36,11 +38,10 @@ static PyObject *RootNew(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 static int RootInit(Root *self, PyObject *args, PyObject *kwds) {
 	static char *kwlist[] = { "node_id", NULL };
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|i", kwlist, &self->node_id)) return -1;
-	auto *nodes = NodeManager::Instance().nodes();
-	auto pointer = nodes->find(self->node_id);
-	if (pointer != nodes->end()) {
-		self->node = pointer->second;
+	self->node = NodeManager::Instance().GetNodeById(self->node_id);
+	if (self->node) {
 		self->can_tick = true;
+		NodeManager::Instance().AddRootNode(self->node_id, &self->node);
 	}
 	return 0;
 }
@@ -66,17 +67,15 @@ static int RootSetNodeId(Root *self, PyObject *value, void *closure) {
 	int node_id = PyInt_AsLong(value);
 	if (PyErr_Occurred()) return -1;
 
+	NodeManager::Instance().DeleteRootNode(self->node_id, &self->node);
 	self->node_id = node_id;
-	auto *nodes = NodeManager::Instance().nodes();
-	auto pointer = nodes->find(self->node_id);
-	if (pointer != nodes->end()) {
-		self->node = pointer->second;
+	self->node = NodeManager::Instance().GetNodeById(self->node_id);
+	if (self->node) {
 		self->can_tick = true;
+		NodeManager::Instance().AddRootNode(self->node_id, &self->node);
 	}
-	else {
-		self->node = NULL;
-		self->can_tick = false;
-	}
+	else self->can_tick = false;
+
 	return 0;
 }
 

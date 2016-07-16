@@ -7,108 +7,129 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <algorithm>
+
+#define INIT_NODES_SIZE 1
 
 class NodeManager {
 public:
 	DISABLE_COPY_AND_ASSIGN(NodeManager);
 	~NodeManager() {
-		for (auto it = nodes_.begin(); it != nodes_.end(); ++ it) {
-			delete it->second;
-			it->second = NULL;
-		}
-		nodes_.clear();
-		functions_.clear();
+		delete[] nodes_;
+		size_ = 0;
+		current_index_ = 0;
 	}
 	static NodeManager &Instance() {
 		static NodeManager instance;
 		return instance;
 	}
-	void AddNode(int id, size_t index, std::vector<int> children_ids, PyObject *function);
-	const std::unordered_map<int, Node *> *nodes() const { return &nodes_; }
+	void AddNode(int id, size_t index, const std::vector<int> &child_ids, PyObject *function);
+	void AddRootNode(int id, Node **node) { root_nodes_[id].insert(node); }
+	void DeleteRootNode(int id, Node **node) { root_nodes_[id].erase(node); }
+	Node *GetNodeById(int id) {
+		auto pointer = mapping_.find(id);
+		if (pointer == mapping_.end()) return NULL;
+		return &nodes_[pointer->second];
+	}
 
 private:
-	NodeManager() {
+	NodeManager() : nodes_(new Node[INIT_NODES_SIZE]()), size_(INIT_NODES_SIZE), current_index_(0) {
 		InitFunctions();
 	}
-	Node *CreateNode(size_t index, std::vector<int> children_ids, PyObject *function);
-	bool IsNodeDataValid(size_t index, std::vector<int> children_ids, PyObject *function);
 	void InitFunctions();
-	void UpdateFathers(int id, Node *child, Node *new_child);
-	void AddFather(int id, int father_id);
+	int GetNewNodesNum(int id, const std::vector<int> &child_ids);
+	size_t CalNewSize(int new_nodes_num);
+	void MapNewNodes(int id, const std::vector<int> &child_ids);
+	void Resize(size_t size);
+	void UpdateRootNodes();
 
 private:
-	std::unordered_map<int, Node *> nodes_;
-	std::unordered_map<int, std::vector<int>> fathers_;
+	Node *nodes_;
+	size_t size_;
+	size_t current_index_;
+	std::unordered_map<int, size_t> mapping_;
 	std::vector<Function> functions_;
+	std::unordered_map<int, std::unordered_set<Node **>> root_nodes_;
 };
 
-inline void NodeManager::AddNode(int id, size_t index, std::vector<int> children_ids, PyObject *function) {
-	if (std::find(children_ids.begin(), children_ids.end(), id) != children_ids.end())
-		return;
+inline void NodeManager::AddNode(int id, size_t index, const std::vector<int> &child_ids, PyObject *function) {
+	if (index > functions_.size()) return;
+	else if(index == 0 && !PyCallable_Check(function)) return;
 
-	Node *node = CreateNode(index, children_ids, function);
-	if (!node) return;
+	int new_nodes_num = GetNewNodesNum(id, child_ids);
+	size_t new_size = CalNewSize(new_nodes_num);
+	if (new_size != size_) Resize(new_size);
 
-	auto pointer = nodes_.find(id);
-	if (pointer != nodes_.end()) {
-		UpdateFathers(id, pointer->second, node);
-		delete nodes_[id];
-	}
-	nodes_[id] = node;
-	for (size_t i = 0; i < children_ids.size(); ++i) {
-		AddFather(children_ids[i], id);
-	}
-}
+	MapNewNodes(id, child_ids);
 
-inline void NodeManager::UpdateFathers(int id, Node *child, Node *new_child) {
-	auto pointer = fathers_.find(id);
-	if (pointer == fathers_.end()) return;
-	std::vector<int> &fathers = pointer->second;
-	for (size_t i = 0; i < fathers.size(); ++i) {
-		auto node_pointer = nodes_.find(fathers[i]);
-		if (node_pointer != nodes_.end()) {
-			Node *father = node_pointer->second;
-			Node **children = father->children();
-			size_t size = father->size();
-			for (size_t j = 0; j < size; ++j) {
-				if (children[j] == child) father->SetChild(j, new_child);
-			}
-		}
-	}
-}
-
-inline void NodeManager::AddFather(int id, int father_id) {
-	fathers_[id].push_back(father_id);
-}
-
-inline Node *NodeManager::CreateNode(size_t index, std::vector<int> children_ids, PyObject *function) {
-	if (!IsNodeDataValid(index, children_ids, function)) return NULL;
-
-	Node *node = new Node();
-	node->Tick = functions_[index];
-	node->SetFunction(function);
-	size_t size = children_ids.size();
-	if (size) {
-		Node **children = new Node *[size];
-		for (size_t i = 0; i < size; ++i) {
-			children[i] = nodes_[children_ids[i]];
-		}
-		node->SetChildren(children, size);
+	size_t mapped_node_id = mapping_[id];
+	nodes_[mapped_node_id].Tick = functions_[index];
+	nodes_[mapped_node_id].SetFunction(function);
+	size_t children_size = child_ids.size();
+	if (children_size) {
+		Node **children = new Node *[children_size];
+		for (size_t i = 0; i < child_ids.size(); ++i)
+			children[i] = &nodes_[mapping_[child_ids[i]]];
+		nodes_[mapped_node_id].SetChildren(children, children_size);
 		delete[] children;
+		children = NULL;
 	}
-	else node->SetChildren(NULL, size);
-	return node;
+	else nodes_[mapped_node_id].SetChildren(NULL, 0);
 }
 
-inline bool NodeManager::IsNodeDataValid(size_t index, std::vector<int> children_ids, PyObject *function) {
-	if (index >= functions_.size()) return false;
-	if (index == 0 && !PyCallable_Check(function)) return false;
-	for (size_t i = 0; i < children_ids.size(); ++i) {
-		auto pointer = nodes_.find(children_ids[i]);
-		if (pointer == nodes_.end() || !pointer->second) return false;
+inline int NodeManager::GetNewNodesNum(int id, const std::vector<int> &child_ids) {
+	int new_nodes_num = static_cast<int>(mapping_.find(id) == mapping_.end());
+	for (size_t i = 0; i < child_ids.size(); ++i) {
+		new_nodes_num += static_cast<int>(mapping_.find(child_ids[i]) == mapping_.end());
 	}
-	return true;
+	return new_nodes_num;
+}
+
+inline size_t NodeManager::CalNewSize(int new_nodes_num) {
+	size_t size = size_;
+	while (current_index_ + new_nodes_num > size) {
+		size <<= 1;
+	}
+	return size;
+}
+
+inline void NodeManager::MapNewNodes(int id, const std::vector<int> &child_ids) {
+	if (mapping_.find(id) == mapping_.end()) mapping_[id] = current_index_++;
+	for (size_t i = 0; i < child_ids.size(); ++i) {
+		if (mapping_.find(child_ids[i]) == mapping_.end())
+			mapping_[child_ids[i]] = current_index_++;
+	}
+}
+
+inline void NodeManager::Resize(size_t size) {
+	Node *new_nodes = new Node[size]();
+	for (size_t i = 0; i < size_; ++i) {
+		new_nodes[i] = nodes_[i];
+	}
+	for (size_t i = 0; i < current_index_; ++i) {
+		Node **children = nodes_[i].children();
+		for (size_t j = 0; j < nodes_[i].size(); ++j) {
+			int offset = children[j] - &nodes_[i];
+			Node **new_node_children = new_nodes[i].children();
+			new_node_children[j] = &new_nodes[i] + offset;
+		}
+	}
+	delete[] nodes_;
+	nodes_ = new_nodes;
+	size_ = size;
+
+	UpdateRootNodes();
+}
+
+inline void NodeManager::UpdateRootNodes() {
+	for (auto it = root_nodes_.begin(); it != root_nodes_.end(); ++it) {
+		int mapped_node_id = mapping_[it->first];
+		auto set = it->second;
+		for (auto other_it = set.begin(); other_it != set.end(); ++other_it) {
+			**other_it = &nodes_[mapped_node_id];
+		}
+	}
 }
 
 inline void NodeManager::InitFunctions() {
