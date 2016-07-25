@@ -117,6 +117,13 @@ inline void NodeManager::InitFunctions() {
 		&Node::TickNode,
 		&Node::RunUntilSuccess,
 		&Node::RunUntilFail,
+		&Node::SequenceRun,
+		&Node::MemRunUntilSuccess,
+		&Node::MemRunUntilFail,
+		&Node::MemSequenceRun,
+		&Node::ReportSuccess,
+		&Node::ReportFailure,
+		&Node::RevertStatus,
 	};
 }
 

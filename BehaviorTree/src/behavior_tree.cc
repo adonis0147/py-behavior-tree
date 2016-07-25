@@ -60,4 +60,28 @@ initbehavior_tree() {
 
 	Py_INCREF(&RootType);
 	PyModule_AddObject(module, "Root", (PyObject *)&RootType);
+
+	// tick functions index
+	PyObject *index = PyDict_New();
+	const char *keys[] = {
+		"tick_leaf",
+		"tick_node",
+		"run_until_success",
+		"run_until_fail",
+		"sequence_run",
+		"mem_run_until_success",
+		"mem_run_until_fail",
+		"mem_sequence_run",
+		"report_success",
+		"report_failure",
+		"revert_status",
+	};
+
+	size_t size = sizeof(keys) / sizeof(const char *);
+	for (size_t i = 0; i < size; ++i) {
+		PyObject *key = PyString_FromString(keys[i]);
+		PyObject *value = PyInt_FromLong(i);
+		PyDict_SetItem(index, key, value);
+	}
+	PyModule_AddObject(module, "FUNCTIONS_INDEX", index);
 }

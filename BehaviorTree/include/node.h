@@ -31,6 +31,13 @@ public:
 	int TickNode(PyObject *args);
 	int RunUntilSuccess(PyObject *args);
 	int RunUntilFail(PyObject *args);
+	int SequenceRun(PyObject *args);
+	int MemRunUntilSuccess(PyObject *args);
+	int MemRunUntilFail(PyObject *args);
+	int MemSequenceRun(PyObject *args);
+	int ReportSuccess(PyObject *args);
+	int ReportFailure(PyObject *args);
+	int RevertStatus(PyObject *args);
 
 private:
 	Node **children_;
@@ -49,6 +56,7 @@ inline void Node::SetFunction(PyObject *function) {
 inline void Node::SetChildren(Node **children, size_t size) {
 	delete[] children_;
 	size_ = size;
+	index_ = 0;
 	if (!size) {
 		children_ = NULL;
 		return;
@@ -111,6 +119,82 @@ inline int Node::RunUntilFail(PyObject *args) {
 			return status;
 	}
 	return status;
+}
+
+inline int Node::SequenceRun(PyObject *args) {
+	int status = SUCCESS;
+	for (size_t i = 0; i < size_; ++i) {
+		if ((status = (children_[i]->*(children_[i]->Tick))(args)) != SUCCESS)
+			return status;
+	}
+	return status;
+}
+
+inline int Node::MemRunUntilSuccess(PyObject *args) {
+	int status = FAILURE;
+	while (index_ < size_) {
+		status = (children_[index_]->*(children_[index_]->Tick))(args);
+		if (status & (SUCCESS | RUNNING)) {
+			if (status != RUNNING) index_ = 0;
+			return status;
+		}
+		++index_;
+	}
+	index_ = 0;
+	return status;
+}
+
+inline int Node::MemRunUntilFail(PyObject *args) {
+	int status = SUCCESS;
+	while (index_ < size_) {
+		status = (children_[index_]->*(children_[index_]->Tick))(args);
+		if (status & (FAILURE | RUNNING)) {
+			if (status != RUNNING) index_ = 0;
+			return status;
+		}
+		++index_;
+	}
+	index_ = 0;
+	return status;
+}
+
+inline int Node::MemSequenceRun(PyObject *args) {
+	int status = SUCCESS;
+	while (index_ < size_) {
+		status = (children_[index_]->*(children_[index_]->Tick))(args);
+		if (status & (FAILURE | RUNNING)) {
+			if (status != RUNNING) index_ = 0;
+			return status;
+		}
+		++index_;
+	}
+	index_ = 0;
+	return status;
+}
+
+inline int Node::ReportSuccess(PyObject *args) {
+	for (size_t i = 0; i < size_; ++i) {
+		(children_[i]->*(children_[i]->Tick))(args);
+		return SUCCESS;
+	}
+	return ERROR;
+}
+
+inline int Node::ReportFailure(PyObject *args) {
+	for (size_t i = 0; i < size_; ++i) {
+		(children_[i]->*(children_[i]->Tick))(args);
+		return FAILURE;
+	}
+	return ERROR;
+}
+
+inline int Node::RevertStatus(PyObject *args) {
+	for (size_t i = 0; i < size_; ++i) {
+		int status = (children_[i]->*(children_[i]->Tick))(args);
+		if (status & RUNNING) return status;
+		else return (status ^ (SUCCESS | FAILURE));
+	}
+	return ERROR;
 }
 
 #endif // !NODE_H
