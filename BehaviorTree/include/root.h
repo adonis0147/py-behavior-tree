@@ -5,6 +5,7 @@
 #include "global.h"
 #include "structmember.h"
 #include "node_manager.h"
+#include <unordered_map>
 
 typedef struct {
 	PyObject_HEAD
@@ -12,6 +13,7 @@ typedef struct {
 	Node *node;
 	bool can_tick;
 	int tick_result;
+	ChildIndex *child_index;
 } Root;
 
 static void RootDealloc(Root *self) {
@@ -19,6 +21,8 @@ static void RootDealloc(Root *self) {
 	self->node = NULL;
 	self->can_tick = false;
 	self->tick_result = 0;
+	delete self->child_index;
+	self->child_index = NULL;
 	self->ob_type->tp_free((PyObject*)self);
 }
 
@@ -29,6 +33,7 @@ static PyObject *RootNew(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 		self->node = NULL;
 		self->can_tick = false;
 		self->tick_result = 0;
+		self->child_index = new ChildIndex();
 	}
 	return (PyObject *)self;
 }
@@ -36,18 +41,20 @@ static PyObject *RootNew(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 static int RootInit(Root *self, PyObject *args, PyObject *kwds) {
 	static char *kwlist[] = { "node_id", NULL };
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|i", kwlist, &self->node_id)) return -1;
-	auto *nodes = NodeManager::Instance().nodes();
+	auto &node_manager = NodeManager::Instance();
+	auto *nodes = node_manager.nodes();
 	auto pointer = nodes->find(self->node_id);
 	if (pointer != nodes->end()) {
 		self->node = pointer->second;
 		self->can_tick = true;
+		node_manager.AddRootNode(self->node_id, &self->node);
 	}
 	return 0;
 }
 
 static PyObject *RootTick(Root *self, PyObject *args) {
 	if (self->can_tick) {
-		self->tick_result = (self->node->*(self->node->Tick))(args);
+		self->tick_result = (self->node->*(self->node->Tick))(args, *self->child_index);
 	}
 	else self->tick_result = 0;
 	Py_RETURN_NONE;
@@ -66,12 +73,16 @@ static int RootSetNodeId(Root *self, PyObject *value, void *closure) {
 	int node_id = PyInt_AsLong(value);
 	if (PyErr_Occurred()) return -1;
 
+	auto &node_manager = NodeManager::Instance();
+	node_manager.RemoveRootNode(self->node_id, &self->node);
+	
 	self->node_id = node_id;
-	auto *nodes = NodeManager::Instance().nodes();
+	auto *nodes = node_manager.nodes();
 	auto pointer = nodes->find(self->node_id);
 	if (pointer != nodes->end()) {
 		self->node = pointer->second;
 		self->can_tick = true;
+		node_manager.AddRootNode(self->node_id, &self->node);
 	}
 	else {
 		self->node = NULL;
