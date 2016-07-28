@@ -78,7 +78,8 @@ inline void Node::SetChild(size_t pos, Node *node) {
 inline int Node::CallPythonFunction(PyObject *args, ChildIndex &child_index) {
 #ifdef TRACE_TICK
 	PyObject *function_name = PyObject_GetAttrString(function_, "__name__");
-	printf("%s %s - behavior_tree - %s : %s\n", __DATE__, __TIME__, __func__, PyString_AsString(function_name));
+	print_timestamp();
+	printf(" - behavior_tree - %s : %s\n", __func__, PyString_AsString(function_name));
 	Py_DECREF(function_name);
 #endif // TRACE_TICK
 
