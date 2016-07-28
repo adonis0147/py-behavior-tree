@@ -18,6 +18,8 @@
 TypeName(const TypeName &) = delete; \
 TypeName &operator=(const TypeName &) = delete
 
+#define PRINT_TRACE_INFO printf("%s %s - behavior_tree - %s\n", __DATE__, __TIME__, __func__)
+
 #ifdef _DEBUG_WAS_DEFINED
 #define _DEBUG
 #endif // _DEBUG_WAS_DEFINED

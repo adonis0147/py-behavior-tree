@@ -76,6 +76,12 @@ inline void Node::SetChild(size_t pos, Node *node) {
 
 // tick methods
 inline int Node::CallPythonFunction(PyObject *args, ChildIndex &child_index) {
+#ifdef TRACE_TICK
+	PyObject *function_name = PyObject_GetAttrString(function_, "__name__");
+	printf("%s %s - behavior_tree - %s : %s\n", __DATE__, __TIME__, __func__, PyString_AsString(function_name));
+	Py_DECREF(function_name);
+#endif // TRACE_TICK
+
 	PyObject *result = PyObject_CallObject(function_, args);
 	if (result == NULL) {
 
@@ -98,6 +104,10 @@ inline int Node::CallPythonFunction(PyObject *args, ChildIndex &child_index) {
 }
 
 inline int Node::TickNode(PyObject *args, ChildIndex &child_index) {
+#ifdef TRACE_TICK
+	PRINT_TRACE_INFO;
+#endif // TRACE_TICK
+
 	for (size_t i = 0; i < size_; ++i) {
 		return (children_[i]->*(children_[i]->Tick))(args, child_index);
 	}
@@ -105,6 +115,10 @@ inline int Node::TickNode(PyObject *args, ChildIndex &child_index) {
 }
 
 inline int Node::RunUntilSuccess(PyObject *args, ChildIndex &child_index) {
+#ifdef TRACE_TICK
+	PRINT_TRACE_INFO;
+#endif // TRACE_TICK
+
 	int status = FAILURE;
 	for (size_t i = 0; i < size_; ++i) {
 		if ((status = (children_[i]->*(children_[i]->Tick))(args, child_index)) & SUCCESS)
@@ -114,6 +128,10 @@ inline int Node::RunUntilSuccess(PyObject *args, ChildIndex &child_index) {
 }
 
 inline int Node::RunUntilFail(PyObject *args, ChildIndex &child_index) {
+#ifdef TRACE_TICK
+	PRINT_TRACE_INFO;
+#endif // TRACE_TICK
+
 	int status = SUCCESS;
 	for (size_t i = 0; i < size_; ++i) {
 		if ((status = (children_[i]->*(children_[i]->Tick))(args, child_index)) & FAILURE)
@@ -123,6 +141,10 @@ inline int Node::RunUntilFail(PyObject *args, ChildIndex &child_index) {
 }
 
 inline int Node::SequenceRun(PyObject *args, ChildIndex &child_index) {
+#ifdef TRACE_TICK
+	PRINT_TRACE_INFO;
+#endif // TRACE_TICK
+
 	int status = SUCCESS;
 	for (size_t i = 0; i < size_; ++i) {
 		if ((status = (children_[i]->*(children_[i]->Tick))(args, child_index)) != SUCCESS)
@@ -132,6 +154,10 @@ inline int Node::SequenceRun(PyObject *args, ChildIndex &child_index) {
 }
 
 inline int Node::MemRunUntilSuccess(PyObject *args, ChildIndex &child_index) {
+#ifdef TRACE_TICK
+	PRINT_TRACE_INFO;
+#endif // TRACE_TICK
+
 	int status = FAILURE;
 	size_t &index = child_index[id_];
 	while (index < size_) {
@@ -147,6 +173,10 @@ inline int Node::MemRunUntilSuccess(PyObject *args, ChildIndex &child_index) {
 }
 
 inline int Node::MemRunUntilFail(PyObject *args, ChildIndex &child_index) {
+#ifdef TRACE_TICK
+	PRINT_TRACE_INFO;
+#endif // TRACE_TICK
+
 	int status = SUCCESS;
 	size_t &index = child_index[id_];
 	while (index < size_) {
@@ -162,6 +192,10 @@ inline int Node::MemRunUntilFail(PyObject *args, ChildIndex &child_index) {
 }
 
 inline int Node::MemSequenceRun(PyObject *args, ChildIndex &child_index) {
+#ifdef TRACE_TICK
+	PRINT_TRACE_INFO;
+#endif // TRACE_TICK
+
 	int status = SUCCESS;
 	size_t &index = child_index[id_];
 	while (index < size_) {
@@ -177,6 +211,10 @@ inline int Node::MemSequenceRun(PyObject *args, ChildIndex &child_index) {
 }
 
 inline int Node::ReportSuccess(PyObject *args, ChildIndex &child_index) {
+#ifdef TRACE_TICK
+	PRINT_TRACE_INFO;
+#endif // TRACE_TICK
+
 	for (size_t i = 0; i < size_; ++i) {
 		(children_[i]->*(children_[i]->Tick))(args, child_index);
 		return SUCCESS;
@@ -185,6 +223,10 @@ inline int Node::ReportSuccess(PyObject *args, ChildIndex &child_index) {
 }
 
 inline int Node::ReportFailure(PyObject *args, ChildIndex &child_index) {
+#ifdef TRACE_TICK
+	PRINT_TRACE_INFO;
+#endif // TRACE_TICK
+
 	for (size_t i = 0; i < size_; ++i) {
 		(children_[i]->*(children_[i]->Tick))(args, child_index);
 		return FAILURE;
@@ -193,6 +235,10 @@ inline int Node::ReportFailure(PyObject *args, ChildIndex &child_index) {
 }
 
 inline int Node::RevertStatus(PyObject *args, ChildIndex &child_index) {
+#ifdef TRACE_TICK
+	PRINT_TRACE_INFO;
+#endif // TRACE_TICK
+
 	for (size_t i = 0; i < size_; ++i) {
 		int status = (children_[i]->*(children_[i]->Tick))(args, child_index);
 		if (status & RUNNING) return status;

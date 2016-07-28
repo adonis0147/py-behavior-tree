@@ -5,7 +5,6 @@
 #include "global.h"
 #include "structmember.h"
 #include "node_manager.h"
-#include <unordered_map>
 
 typedef struct {
 	PyObject_HEAD
