@@ -53,6 +53,11 @@ static PyMethodDef behavior_tree_methods[] = {
 
 PyMODINIT_FUNC
 initbehavior_tree() {
+
+#if defined(_DEBUG) | defined(TRACE_TICK)
+	PyErr_Warn(PyExc_RuntimeWarning, "This is the debug build of behavior_tree.pyd!");
+#endif // _DEBUG
+
 	if (PyType_Ready(&RootType) < 0) return;
 	
 	PyObject *module = Py_InitModule("behavior_tree", behavior_tree_methods);
@@ -82,6 +87,8 @@ initbehavior_tree() {
 		PyObject *key = PyString_FromString(keys[i]);
 		PyObject *value = PyInt_FromLong(i);
 		PyDict_SetItem(index, key, value);
+		Py_DECREF(key);
+		Py_DECREF(value);
 	}
 	PyModule_AddObject(module, "FUNCTIONS_INDEX", index);
 }
