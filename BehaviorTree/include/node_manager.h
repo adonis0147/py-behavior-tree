@@ -28,9 +28,7 @@ public:
 	const std::unordered_map<int, Node *> *nodes() const { return &nodes_; }
 
 	void AddNode(int id, size_t index, std::vector<int> children_ids, PyObject *function);
-	void AddRootNode(int id, Node **node);
-	void RemoveRootNode(int id, Node **node);
-
+	
 private:
 	NodeManager() {
 		InitFunctions();
@@ -38,8 +36,6 @@ private:
 	Node *CreateNode(int id, size_t index, std::vector<int> children_ids, PyObject *function);
 	bool IsNodeDataValid(size_t index, std::vector<int> children_ids, PyObject *function);
 	void InitFunctions();
-	void UpdateFathers(int id, Node *child, Node *new_child);
-	void AddFather(int id, int father_id);
 
 private:
 	std::unordered_map<int, Node *> nodes_;
@@ -57,39 +53,9 @@ inline void NodeManager::AddNode(int id, size_t index, std::vector<int> children
 
 	auto pointer = nodes_.find(id);
 	if (pointer != nodes_.end()) {
-		UpdateFathers(id, pointer->second, node);
-		delete nodes_[id];
-	}
-	nodes_[id] = node;
-	for (size_t i = 0; i < children_ids.size(); ++i) {
-		AddFather(children_ids[i], id);
-	}
-	
-	if (root_nodes_.find(id) != root_nodes_.end()) {
-		for (auto it = root_nodes_[id].begin(); it != root_nodes_[id].end(); ++it)
-			**it = node;
-	}
-}
-
-inline void NodeManager::UpdateFathers(int id, Node *child, Node *new_child) {
-	auto pointer = fathers_.find(id);
-	if (pointer == fathers_.end()) return;
-	std::vector<int> &fathers = pointer->second;
-	for (size_t i = 0; i < fathers.size(); ++i) {
-		auto node_pointer = nodes_.find(fathers[i]);
-		if (node_pointer != nodes_.end()) {
-			Node *father = node_pointer->second;
-			Node **children = father->children();
-			size_t size = father->size();
-			for (size_t j = 0; j < size; ++j) {
-				if (children[j] == child) father->SetChild(j, new_child);
-			}
-		}
-	}
-}
-
-inline void NodeManager::AddFather(int id, int father_id) {
-	fathers_[id].push_back(father_id);
+		*nodes_[id] = *node;
+		delete node;
+	} else nodes_[id] = node;
 }
 
 inline Node *NodeManager::CreateNode(int id, size_t index, std::vector<int> children_ids, PyObject *function) {
@@ -119,15 +85,6 @@ inline bool NodeManager::IsNodeDataValid(size_t index, std::vector<int> children
 		if (pointer == nodes_.end() || !pointer->second) return false;
 	}
 	return true;
-}
-
-inline void NodeManager::AddRootNode(int id, Node **node) {
-	root_nodes_[id].insert(node);
-}
-
-inline void NodeManager::RemoveRootNode(int id, Node **node) {
-	root_nodes_[id].erase(node);
-	if (root_nodes_[id].size() == 0) root_nodes_.erase(id);
 }
 
 inline void NodeManager::InitFunctions() {

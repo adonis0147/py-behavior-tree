@@ -12,7 +12,15 @@ typedef int(Node::*Function)(PyObject *, ChildIndex &);
 class Node {
 public:
 	explicit Node(int id): id_(id), Tick(NULL), children_(NULL), size_(0), function_(NULL) {}
-	DISABLE_COPY_AND_ASSIGN(Node);
+	Node(const Node &node) : 
+			id_(node.id_), 
+			Tick(node.Tick), 
+			children_(new Node *[node.size_]), 
+			size_(node.size_), 
+			function_(node.function_) {
+		memcpy(children_, node.children_, sizeof(Node *) * node.size_);
+		Py_XINCREF(function_);
+	}
 	~Node() {
 		Tick = NULL;
 		delete[] children_;
@@ -20,6 +28,17 @@ public:
 		size_ = 0;
 		Py_XDECREF(function_);
 		function_ = NULL;
+	}
+	Node &operator =(const Node &node) {
+		id_ = node.id_;
+		Tick = node.Tick;
+		delete[] children_;
+		children_ = new Node *[node.size_];
+		memcpy(children_, node.children_, sizeof(Node *) * node.size_);
+		size_ = node.size_;
+		function_ = node.function_;
+		Py_XINCREF(function_);
+		return *this;
 	}
 	Function Tick;
 	void SetFunction(PyObject *function);

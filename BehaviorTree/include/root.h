@@ -46,7 +46,6 @@ static int RootInit(Root *self, PyObject *args, PyObject *kwds) {
 	if (pointer != nodes->end()) {
 		self->node = pointer->second;
 		self->can_tick = true;
-		node_manager.AddRootNode(self->node_id, &self->node);
 	}
 	return 0;
 }
@@ -73,15 +72,12 @@ static int RootSetNodeId(Root *self, PyObject *value, void *closure) {
 	if (PyErr_Occurred()) return -1;
 
 	auto &node_manager = NodeManager::Instance();
-	node_manager.RemoveRootNode(self->node_id, &self->node);
-	
 	self->node_id = node_id;
 	auto *nodes = node_manager.nodes();
 	auto pointer = nodes->find(self->node_id);
 	if (pointer != nodes->end()) {
 		self->node = pointer->second;
 		self->can_tick = true;
-		node_manager.AddRootNode(self->node_id, &self->node);
 	}
 	else {
 		self->node = NULL;
