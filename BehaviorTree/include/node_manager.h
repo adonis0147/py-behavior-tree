@@ -39,8 +39,6 @@ private:
 
 private:
 	std::unordered_map<int, Node *> nodes_;
-	std::unordered_map<int, std::vector<int>> fathers_;
-	std::unordered_map<int, std::unordered_set<Node **>> root_nodes_;
 	std::vector<Function> functions_;
 };
 
