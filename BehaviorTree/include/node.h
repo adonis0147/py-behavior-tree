@@ -105,7 +105,7 @@ inline int Node::CallPythonFunction(PyObject *args, ChildIndex &child_index) {
 	PyObject *result = PyObject_CallObject(function_, args);
 	if (result == NULL) {
 
-#ifdef _DEBUG
+#if defined(_DEBUG) | defined(TRACE_TICK) | defined(TRACE_ERROR)
 		PyErr_Print();
 #endif // _DEBUG
 
@@ -114,7 +114,7 @@ inline int Node::CallPythonFunction(PyObject *args, ChildIndex &child_index) {
 	}
 	int status = PyInt_AsLong(result);
 
-#ifdef _DEBUG
+#if defined(_DEBUG) | defined(TRACE_TICK) | defined(TRACE_ERROR)
 	PyErr_Print();
 #endif // _DEBUG
 
