@@ -11,10 +11,10 @@ typedef int(Node::*Function)(PyObject *, ChildIndex &);
 
 class Node {
 public:
-	explicit Node(int id): id_(id), Tick(NULL), children_(NULL), size_(0), function_(NULL) {}
+	explicit Node(int id): Tick(NULL), id_(id), children_(NULL), size_(0), function_(NULL) {}
 	Node(const Node &node) : 
-			id_(node.id_), 
 			Tick(node.Tick), 
+			id_(node.id_), 
 			children_(new Node *[node.size_]), 
 			size_(node.size_), 
 			function_(node.function_) {
