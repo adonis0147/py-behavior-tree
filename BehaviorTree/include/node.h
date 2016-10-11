@@ -235,8 +235,8 @@ inline int Node::ReportSuccess(PyObject *args, ChildIndex &child_index) {
 	PRINT_TRACE_INFO;
 #endif // TRACE_TICK
 
-	for (size_t i = 0; i < size_; ++i) {
-		(children_[i]->*(children_[i]->Tick))(args, child_index);
+	if (size_ > 0) {
+		(children_[0]->*(children_[0]->Tick))(args, child_index);
 		return SUCCESS;
 	}
 	return ERROR;
@@ -247,8 +247,8 @@ inline int Node::ReportFailure(PyObject *args, ChildIndex &child_index) {
 	PRINT_TRACE_INFO;
 #endif // TRACE_TICK
 
-	for (size_t i = 0; i < size_; ++i) {
-		(children_[i]->*(children_[i]->Tick))(args, child_index);
+	if (size_ > 0) {
+		(children_[0]->*(children_[0]->Tick))(args, child_index);
 		return FAILURE;
 	}
 	return ERROR;
@@ -259,8 +259,8 @@ inline int Node::RevertStatus(PyObject *args, ChildIndex &child_index) {
 	PRINT_TRACE_INFO;
 #endif // TRACE_TICK
 
-	for (size_t i = 0; i < size_; ++i) {
-		int status = (children_[i]->*(children_[i]->Tick))(args, child_index);
+	if (size_ > 0) {
+		int status = (children_[0]->*(children_[0]->Tick))(args, child_index);
 		if (status & RUNNING) return status;
 		else return (status ^ (SUCCESS | FAILURE));
 	}
