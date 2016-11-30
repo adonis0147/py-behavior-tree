@@ -19,7 +19,11 @@
 TypeName(const TypeName &) = delete; \
 TypeName &operator=(const TypeName &) = delete
 
-#define PRINT_TRACE_INFO print_timestamp(); printf(" - behavior_tree - %s : node %d\n", __func__, id_)
+#define PRINT_TRACE_INFO \
+do { \
+	print_timestamp(); \
+	printf(" - behavior_tree - %s : node %d\n", __func__, id_); \
+} while(false)
 
 void print_timestamp() {
 	time_t timestamp = time(NULL);
