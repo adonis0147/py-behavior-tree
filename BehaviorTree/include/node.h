@@ -70,15 +70,15 @@ public:
 	void SetFunction(PyObject *function);
 
 	// tick methods
-	// common method
+	// common methods
 	int CallPythonFunction(PyObject *args, TreeData *&tree_data);
 	int TickNode(PyObject *args, TreeData *&tree_data);
-	// composite node method
+	// composite node methods
 	int RunUntilSuccess(PyObject *args, TreeData *&tree_data);
 	int RunUntilFail(PyObject *args, TreeData *&tree_data);
 	int MemRunUntilSuccess(PyObject *args, TreeData *&tree_data);
 	int MemRunUntilFail(PyObject *args, TreeData *&tree_data);
-	// decorator node method
+	// decorator node methods
 	int ReportSuccess(PyObject *args, TreeData *&tree_data);
 	int ReportFailure(PyObject *args, TreeData *&tree_data);
 	int RevertStatus(PyObject *args, TreeData *&tree_data);

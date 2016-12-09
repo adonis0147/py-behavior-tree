@@ -5,6 +5,7 @@
 #include "global.h"
 #include "node.h"
 #include <vector>
+#include <unordered_map>
 #include <algorithm>
 
 class NodeManager {
