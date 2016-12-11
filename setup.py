@@ -14,8 +14,6 @@ module = Extension(
         '--std=c++11',
         '-I./BehaviorTree/include',
         '-Wno-write-strings',
-        '-Wno-error=format-security',
-        '-Wno-format-security',
     ]
 )
 

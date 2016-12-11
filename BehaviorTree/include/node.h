@@ -17,7 +17,7 @@
 		print_timestamp(); \
 		char buffer[256]; \
 		snprintf(buffer, sizeof(buffer), " - behavior_tree - %s : " format, __func__, info); \
-		PySys_WriteStdout(buffer); \
+		PySys_WriteStdout("%s", buffer); \
 	} while(0)
 
 #define PRINT_SIMPLE_TRACE_INFO \

@@ -6,5 +6,5 @@ void print_timestamp() {
 	struct tm *time_info = localtime(&timestamp);
 	char buffer[80];
 	strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", time_info);
-	PySys_WriteStdout(buffer);
+	PySys_WriteStdout("%s", buffer);
 }
