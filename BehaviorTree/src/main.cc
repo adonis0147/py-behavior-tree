@@ -15,8 +15,5 @@ initbehavior_tree_d() {
 initbehavior_tree() {
 #endif
 
-	PyObject *module = Py_InitModule(MODULE_NAME, behavior_tree_methods);
-	if (module == NULL) return;
-
-	InitModule(module);
+	InitModule(MODULE_NAME);
 }

@@ -32,7 +32,7 @@ static PyObject *RootNew(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 }
 
 static int RootInit(PyRoot *self, PyObject *args, PyObject *kwds) {
-	static char *kwlist[] = { "node_id", NULL };
+	static char *kwlist[] = {"node_id", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|i", kwlist, &self->root->node_id)) return -1;
 	auto &node_manager = NodeManager::Instance();
 	auto *nodes = node_manager.nodes();
@@ -64,7 +64,7 @@ static PyObject *RootGetNodeId(PyRoot *self, void *closure) {
 static int RootSetNodeId(PyRoot *self, PyObject *value, void *closure) {
 	int node_id = PyInt_AsLong(value);
 	if (PyErr_Occurred()) return -1;
-	
+
 	self->root->node_id = node_id;
 
 	auto &node_manager = NodeManager::Instance();

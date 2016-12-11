@@ -5,9 +5,10 @@
 #include "global.h"
 #include "node_data.h"
 #include "root.h"
+#include "stddef.h"
 
-#define container_of(ptr, type, member) ( \
-	(type *)((char *)ptr - offsetof(type, member)) )
+#define container_of(ptr, type, member) \
+	( (type *)((char *)ptr - offsetof(type, member)) )
 
 #define SHOULD_PRINT_TRACE_INFO (container_of(&tree_data, Root, tree_data)->debug)
 
@@ -57,7 +58,7 @@ public:
 		children_ = new Node *[node.size_];
 		memcpy(children_, node.children_, sizeof(Node *) * node.size_);
 		size_ = node.size_;
-		
+
 		Py_XDECREF(function_);
 		function_ = node.function_;
 		Py_XINCREF(function_);
@@ -111,8 +112,8 @@ inline int Node::CallPythonFunction(PyObject *args, TreeData *&tree_data) {
 	if (SHOULD_PRINT_TRACE_INFO)
 		PRINT_TRACE_INFO("%s\n", PyString_AsString(function_name));
 	Py_DECREF(function_name);
-#endif // TRACE_TICK 
-	
+#endif // TRACE_TICK
+
 	PyObject *result = PyObject_CallObject(function_, args);
 	if (result == NULL) {
 
@@ -143,7 +144,7 @@ inline int Node::TickNode(PyObject *args, TreeData *&tree_data) {
 #ifdef TRACE_TICK
 	PRINT_SIMPLE_TRACE_INFO;
 #endif // TRACE_TICK
-	
+
 	if (size_ > 0) {
 		return TICK_CHILDREN(0);
 	}

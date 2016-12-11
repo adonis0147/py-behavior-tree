@@ -4,13 +4,6 @@
 
 #include "global.h"
 
-PyObject *AddNode(PyObject *self, PyObject *args, PyObject *keywds);
-
-static PyMethodDef behavior_tree_methods[] = {
-	{"add_node", (PyCFunction)AddNode, METH_VARARGS | METH_KEYWORDS, "add_node(id, index, children, function)"},
-	{NULL, NULL, 0, NULL},
-};
-
-void InitModule(PyObject *module);
+void InitModule(const char *module_name);
 
 #endif // !BEHAVIOR_TREE_H

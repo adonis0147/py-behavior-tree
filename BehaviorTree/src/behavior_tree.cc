@@ -1,12 +1,11 @@
-#pragma once
 #include "behavior_tree.h"
 #include "node_manager.h"
 #include "pyroot.h"
 
-PyObject *AddNode(PyObject *self, PyObject *args, PyObject *keywds) {
+static PyObject *AddNode(PyObject *self, PyObject *args, PyObject *keywds) {
 	int id, index;
 	PyObject *children = NULL, *function = NULL;
-	static char *kwlist[] = { "id", "index", "children", "function", NULL };
+	static char *kwlist[] = {"id", "index", "children", "function", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, keywds, "ii|OO", kwlist, &id, &index, &children, &function))
 		return NULL;
@@ -45,8 +44,17 @@ PyObject *AddNode(PyObject *self, PyObject *args, PyObject *keywds) {
 	else Py_RETURN_TRUE;
 }
 
-void InitModule(PyObject *module) {
+static PyMethodDef behavior_tree_methods[] = {
+	{"add_node", (PyCFunction)AddNode, METH_VARARGS | METH_KEYWORDS, "add_node(id, index, children, function)"},
+	{NULL, NULL, 0, NULL},
+};
+
+void InitModule(const char *module_name) {
 	if (PyType_Ready(&RootType) < 0) return;
+
+	PyObject *module = Py_InitModule(module_name, behavior_tree_methods);
+	if (module == NULL) return;
+
 	Py_INCREF(&RootType);
 	PyModule_AddObject(module, "Root", (PyObject *)&RootType);
 
