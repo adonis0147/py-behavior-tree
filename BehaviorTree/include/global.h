@@ -18,7 +18,7 @@
 TypeName(const TypeName &) = delete; \
 TypeName &operator=(const TypeName &) = delete
 
-void print_timestamp();
+void get_timestamp(char *buffer, size_t size);
 
 #ifdef DEBUG_WAS_DEFINED
 #define _DEBUG

@@ -14,10 +14,11 @@
 
 #define PRINT_TRACE_INFO(format, info) \
 	do { \
-		print_timestamp(); \
+		char timestamp[64]; \
+		get_timestamp(timestamp, sizeof(timestamp)); \
 		char buffer[256]; \
 		snprintf(buffer, sizeof(buffer), " - behavior_tree - %s : " format, __func__, info); \
-		PySys_WriteStdout("%s", buffer); \
+		PySys_WriteStdout("%s%s", timestamp, buffer); \
 	} while(0)
 
 #define PRINT_SIMPLE_TRACE_INFO \
@@ -129,7 +130,11 @@ inline int Node::CallPythonFunction(PyObject *args, TreeData *&tree_data) {
 #if defined(_DEBUG) | defined(TRACE_TICK)
 	if (PyErr_Occurred()) {
 		PyObject *function_name = PyObject_GetAttrString(function_, "__name__");
-		PRINT_TRACE_INFO("%s - ", PyString_AsString(function_name));
+		char timestamp[64];
+		get_timestamp(timestamp, sizeof(timestamp));
+		char buffer[256];
+		snprintf(buffer, sizeof(buffer), " - behavior_tree - %s : %s - ", __func__, PyString_AsString(function_name));
+		PySys_WriteStderr("%s%s", timestamp, buffer);
 		PyErr_Print();
 		Py_DECREF(function_name);
 	}

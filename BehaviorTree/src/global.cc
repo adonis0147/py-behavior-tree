@@ -1,10 +1,8 @@
 #include "global.h"
 #include <ctime>
 
-void print_timestamp() {
+void get_timestamp(char *buffer, size_t size) {
 	time_t timestamp = time(NULL);
 	struct tm *time_info = localtime(&timestamp);
-	char buffer[80];
-	strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", time_info);
-	PySys_WriteStdout("%s", buffer);
+	strftime(buffer, sizeof(char *) * size, "%Y-%m-%d %H:%M:%S", time_info);
 }
