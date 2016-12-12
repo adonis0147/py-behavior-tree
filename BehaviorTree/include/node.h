@@ -12,19 +12,19 @@
 
 #define SHOULD_PRINT_TRACE_INFO (container_of(&tree_data, Root, tree_data)->debug)
 
-#define PRINT_TRACE_INFO(format, info) \
+#define PRINT_TRACE_INFO(func, format, info) \
 	do { \
 		char timestamp[64]; \
 		get_timestamp(timestamp, sizeof(timestamp)); \
 		char buffer[256]; \
 		snprintf(buffer, sizeof(buffer), " - behavior_tree - %s : " format, __func__, info); \
-		PySys_WriteStdout("%s%s", timestamp, buffer); \
+		func("%s%s", timestamp, buffer); \
 	} while(0)
 
 #define PRINT_SIMPLE_TRACE_INFO \
 	do { \
 		if (SHOULD_PRINT_TRACE_INFO) \
-			PRINT_TRACE_INFO("node %d\n", id_); \
+			PRINT_TRACE_INFO(PySys_WriteStdout, "node %d\n", id_); \
 	} while (0)
 
 class Node {
@@ -92,7 +92,7 @@ private:
 	PyObject *function_;
 };
 
-#define TICK_CHILDREN(i) (children_[i]->*(children_[i]->Tick))(args, tree_data)
+#define TICK_CHILDREN(i) ( (children_[i]->*(children_[i]->Tick))(args, tree_data) )
 
 inline void Node::SetChildren(Node **children, size_t size) {
 	delete[] children_;
@@ -111,7 +111,7 @@ inline int Node::CallPythonFunction(PyObject *args, TreeData *&tree_data) {
 #ifdef TRACE_TICK
 	PyObject *function_name = PyObject_GetAttrString(function_, "__name__");
 	if (SHOULD_PRINT_TRACE_INFO)
-		PRINT_TRACE_INFO("%s\n", PyString_AsString(function_name));
+		PRINT_TRACE_INFO(PySys_WriteStdout, "%s\n", PyString_AsString(function_name));
 	Py_DECREF(function_name);
 #endif // TRACE_TICK
 
@@ -130,11 +130,7 @@ inline int Node::CallPythonFunction(PyObject *args, TreeData *&tree_data) {
 #if defined(_DEBUG) | defined(TRACE_TICK)
 	if (PyErr_Occurred()) {
 		PyObject *function_name = PyObject_GetAttrString(function_, "__name__");
-		char timestamp[64];
-		get_timestamp(timestamp, sizeof(timestamp));
-		char buffer[256];
-		snprintf(buffer, sizeof(buffer), " - behavior_tree - %s : %s - ", __func__, PyString_AsString(function_name));
-		PySys_WriteStderr("%s%s", timestamp, buffer);
+		PRINT_TRACE_INFO(PySys_WriteStderr, "%s - ", PyString_AsString(function_name));
 		PyErr_Print();
 		Py_DECREF(function_name);
 	}
