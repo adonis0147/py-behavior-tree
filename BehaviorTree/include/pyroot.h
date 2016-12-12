@@ -97,7 +97,7 @@ static PyObject *RootGetDebug(PyRoot *self, void *closure) {
 static int RootSetDebug(PyRoot *self, PyObject *value, void *closure) {
 	int debug = PyObject_IsTrue(value);
 	if (debug < 0) return -1;
-	self->root->debug = (bool)debug;
+	self->root->debug = (debug != 0);
 	return 0;
 }
 
