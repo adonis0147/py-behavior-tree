@@ -6,6 +6,8 @@
 #include "node_data.h"
 #include "root.h"
 #include "stddef.h"
+#include "profile/profiler.h"
+#include <ctime>
 
 #define container_of(ptr, type, member) \
 	( (type *)((char *)ptr - offsetof(type, member)) )
@@ -71,6 +73,9 @@ public:
 	size_t size() { return size_; }
 	void SetFunction(PyObject *function);
 
+	// hook tick method to profile
+	int ProfileTick(PyObject *args, TreeData *&tree_data);
+
 	// tick methods
 	// common methods
 	int CallPythonFunction(PyObject *args, TreeData *&tree_data);
@@ -92,7 +97,11 @@ private:
 	PyObject *function_;
 };
 
+#ifndef PROFILE_TICK
 #define TICK_CHILDREN(i) ( (children_[i]->*(children_[i]->Tick))(args, tree_data) )
+#else
+#define TICK_CHILDREN(i) ( children_[i]->ProfileTick(args, tree_data) )
+#endif // !PROFILE_TICK
 
 inline void Node::SetChildren(Node **children, size_t size) {
 	delete[] children_;
@@ -105,6 +114,17 @@ inline void Node::SetFunction(PyObject *function) {
 	Py_XDECREF(function_);
 	function_ = function;
 	Py_XINCREF(function_);
+}
+
+inline int Node::ProfileTick(PyObject *args, TreeData *&tree_data) {
+	Profiler &profiler = Profiler::Instance();
+	if (!profiler.enable()) return (this->*(this->Tick))(args, tree_data);
+
+	clock_t start = clock();
+	int status = (this->*(this->Tick))(args, tree_data);
+	clock_t end = clock();
+	profiler.AddProfileData(id_, end - start);
+	return status;
 }
 
 inline int Node::CallPythonFunction(PyObject *args, TreeData *&tree_data) {

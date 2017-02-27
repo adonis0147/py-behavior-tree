@@ -1,11 +1,18 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 project(behavior_tree)
 
-find_package(PythonLibs)
+find_package(PythonLibs 2.7 REQUIRED)
 
 set(PROJECT_PATH ./BehaviorTree)
 file(GLOB HEADER_FILES "${PROJECT_PATH}/include/*.h")
+file(GLOB PROFILE_HEADER_FILES "${PROJECT_PATH}/include/profile/*.h")
 file(GLOB SOURCE_FILES "${PROJECT_PATH}/src/*.cc")
+
+source_group("Header Files\\profile" FILES ${PROFILE_HEADER_FILES})
+
+list(APPEND HEADER_FILES
+	${PROFILE_HEADER_FILES}
+)
 
 include_directories(
 	"${PROJECT_PATH}/include"
@@ -14,12 +21,14 @@ include_directories(
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
 
-if(DEBUG_BUILD)
-	add_definitions(-DTRACE_TICK)
-	set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${PROJECT_NAME}_d")
-else(DEBUG_BUILD)
-	set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "_d")
-endif(DEBUG_BUILD)
+if(MSVC)
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /D TRACE_TICK /D PROFILE_TICK")
+else(MSVC)
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DTRACE_TICK -DPROFILE_TICK")
+endif(MSVC)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "_d")
+set_target_properties(${PROJECT_NAME} PROPERTIES RELWITHDEBINFO_POSTFIX "_d")
 
 if(MSVC)
 	set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".pyd")

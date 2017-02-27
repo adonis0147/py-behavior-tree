@@ -5,6 +5,7 @@
 #include "root.h"
 #include "structmember.h"
 #include "node_manager.h"
+#include "profile/profiler.h"
 
 typedef struct {
 	PyObject_HEAD
@@ -46,15 +47,29 @@ static int RootInit(PyRoot *self, PyObject *args, PyObject *kwds) {
 static PyObject *RootTick(PyRoot *self, PyObject *args) {
 	if (self->can_tick) {
 		Root *root = self->root;
+
+#ifndef PROFILE_TICK
 		self->tick_result = (root->node->*(root->node->Tick))(args, root->tree_data);
+#else
+		Profiler &profiler = Profiler::Instance();
+		if (!profiler.enable()) {
+			self->tick_result = root->node->ProfileTick(args, root->tree_data);
+		}
+		else {
+			profiler.Start(self->root->node_id);
+			self->tick_result = root->node->ProfileTick(args, root->tree_data);
+			profiler.End();
+		}
+#endif // !PROFILE_TICK
+
 	}
 	else self->tick_result = 0;
 	Py_RETURN_NONE;
 }
 
 static PyMethodDef root_methods[] = {
-	{"tick", (PyCFunction)RootTick, METH_VARARGS, "tick root"},
-	{NULL, NULL, 0, NULL},
+	{ "tick", (PyCFunction)RootTick, METH_VARARGS, "tick root" },
+	{ NULL, NULL, 0, NULL },
 };
 
 static PyObject *RootGetNodeId(PyRoot *self, void *closure) {
@@ -102,11 +117,11 @@ static int RootSetDebug(PyRoot *self, PyObject *value, void *closure) {
 }
 
 static PyGetSetDef root_getseters[] = {
-	{"node_id", (getter)RootGetNodeId, (setter)RootSetNodeId, "node id", NULL},
-	{"can_tick", (getter)RootGetCanTick, NULL, "can tick", NULL},
-	{"tick_result", (getter)RootGetTickResult, NULL, "tick result", NULL},
-	{"debug", (getter)RootGetDebug, (setter)RootSetDebug, "debug", NULL},
-	{NULL },
+	{ "node_id", (getter)RootGetNodeId, (setter)RootSetNodeId, "node id", NULL },
+	{ "can_tick", (getter)RootGetCanTick, NULL, "can tick", NULL },
+	{ "tick_result", (getter)RootGetTickResult, NULL, "tick result", NULL },
+	{ "debug", (getter)RootGetDebug, (setter)RootSetDebug, "debug", NULL },
+	{ NULL },
 };
 
 static PyTypeObject RootType = {
