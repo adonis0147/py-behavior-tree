@@ -50,6 +50,15 @@ public:
 		delete[] children_;
 		children_ = NULL;
 		size_ = 0;
+
+#ifdef Py_DEBUG
+		// The process terminates and the destruction is called by static variable's destructor(~NodeManager()).
+		// The Python interpreter is finalized at the moment.
+		if (!Py_IsInitialized()) {
+			return;
+		}
+#endif
+
 		Py_XDECREF(function_);
 		function_ = NULL;
 	}
