@@ -26,7 +26,7 @@ public:
 	void AddProfileData(NodeId node_id, clock_t consumed_clocks) {
 		if (!current_collection_) return;
 		ProfileData &data = (*current_collection_)[node_id];
-		++data.times;
+		++data.calls;
 		data.clocks += consumed_clocks;
 	}
 

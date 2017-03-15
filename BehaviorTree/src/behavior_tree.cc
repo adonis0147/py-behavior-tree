@@ -102,9 +102,9 @@ static PyObject *DumpProfileInPyDictObject() {
 			PyObject *py_node_id = Py_BuildValue("i", inner_pair.first);
 			PyObject *py_data = PyDict_New();
 
-			PyObject *py_times = Py_BuildValue("I", inner_pair.second.times);
-			PyDict_SetItemString(py_data, "times", py_times);
-			Py_DECREF(py_times);
+			PyObject *py_calls = Py_BuildValue("I", inner_pair.second.calls);
+			PyDict_SetItemString(py_data, "calls", py_calls);
+			Py_DECREF(py_calls);
 
 			PyObject *py_clocks = Py_BuildValue("k", inner_pair.second.clocks);
 			PyDict_SetItemString(py_data, "clocks", py_clocks);

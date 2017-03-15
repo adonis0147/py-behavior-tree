@@ -5,7 +5,7 @@
 #include <ctime>
 
 struct ProfileData {
-	unsigned int times;
+	unsigned int calls;
 	unsigned long clocks;
 };
 
