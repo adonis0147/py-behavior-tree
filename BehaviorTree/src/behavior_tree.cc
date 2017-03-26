@@ -160,6 +160,11 @@ void InitModule(const char *module_name) {
 	Py_INCREF(&RootType);
 	PyModule_AddObject(module, "Root", (PyObject *)&RootType);
 
+	PyModule_AddObject(module, "SUCCESS", PyInt_FromLong(SUCCESS));
+	PyModule_AddObject(module, "FAILURE", PyInt_FromLong(FAILURE));
+	PyModule_AddObject(module, "RUNNING", PyInt_FromLong(RUNNING));
+	PyModule_AddObject(module, "ERROR", PyInt_FromLong(ERROR));
+
 	// tick functions index
 	PyObject *index = PyDict_New();
 	const char *keys[] = {
