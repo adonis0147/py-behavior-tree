@@ -34,7 +34,7 @@ More functions can be found in `behavior_tree.FUNCTIONS_INDEX`.
 ### Add Nodes
 You can call the `behavior_tree.add_node` method to add a node. However, there is a subtle difference between adding leaf nodes and non-leaf nodes.
 
-For a leaf node which is used to call Python function, you should pass the Python function to the method:
+For a leaf node which is used to call Python function, you should pass Python function to the method:
 ``` Python
 import behavior_tree
 
@@ -65,7 +65,7 @@ behavior_tree.add_node(2, behavior_tree.FUNCTIONS_INDEX['tick_node'], children=[
 ```
 
 ## About Hotfix
-Nodes are identified by `id` and you can change the tick function, children and the Python function of a node by calling the `behavior_tree.add_node`.
+Nodes are identified by `id` and you can change the tick function, the children nodes and the Python function of a node by calling the `behavior_tree.add_node`.
 ``` Python
 def bar():
   print 'Hello, hotfix!'
@@ -77,10 +77,11 @@ root.tick()
 ```
 The result will be changed to `Hello, hotfix!`.
 
-The nodes increment by `id` and will not be freed until the process terminates. Therefore, if you change the children of a node, the memory of the old useless children nodes will not be released.
+The nodes increment by `id` and will not be freed until the process terminates. Therefore, if you change the children nodes of a node, the memory of the old useless children nodes will not be released.
 ``` Python
 def baz():
   print 'Hello, new child!'
+  return behavior_tree.SUCCESS
 
 behavior_tree.add_node(3, behavior_tree.FUNCTIONS_INDEX['tick_leaf'], function=baz)
 
