@@ -89,5 +89,5 @@ behavior_tree.add_node(2, behavior_tree.FUNCTIONS_INDEX['tick_node'], children=[
 ```
 `Node 1`, `Node 2`, and `Node 3` are all in the memory.
 
-### Related Project
+## Related Project
   - [profile-viewer](https://github.com/adonis0147/profile-viewer) - Profile viewer for behavior tree
