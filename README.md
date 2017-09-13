@@ -1,5 +1,5 @@
 # py-behavior-tree [![travis-ci status](https://travis-ci.org/adonis0147/py-behavior-tree.svg?branch=master)](https://travis-ci.org/adonis0147/py-behavior-tree)
-A Python extension with C++ of Behavior Tree
+A C++ extension for Python of Behavior Tree
 
 ## Prerequisite
   - Python v2.7+
